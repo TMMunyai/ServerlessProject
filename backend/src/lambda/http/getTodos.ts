@@ -7,75 +7,32 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { getTodosForUser as getTodosForUser } from '../../businessLogic/todos'
 import { getUserId } from '../utils';
+import { createLogger } from '../../utils/logger'
+import { S3Helper } from '../../helpers/s3Helper'
+import { TodosAccess } from '../../helpers/todosAccess'
 
-const todoTable = process.env.TODOS_TABLE
-const docClient = new DocumentClient()
+const s3Helper = new S3Helper()
+const logger = createLogger('todos')
 
 // TODO: Get all TODO items for a current user
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    // Write your code here
-    const userId = event.pathParameters.userId
-
-    const validUserId = await userExists(userId)
-
-    if (!validUserId) {
-      return {
-        statusCode: 404,
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-          error: 'Group does not exist'
-        })
-      }
-    }
-
-    const userTodo = await getUsersTodoById(userId)
-
-    //const todos = '...'
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({
-        items: userTodo
-      })  
+  //skipping auth part for now
+  const userId = '1234' 
+  logger.info(`get groups for user ${userId}`)
+  const result = await new TodosAccess().getUserTodos(userId)
+    
+  for(const recordItem of result){
+      recordItem.attachmentUrl = await s3Helper.getTodoAttachmentUrl(recordItem.todoId)
+  }
+
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: JSON.stringify({
+      items:result
+    })
     }
   }
-)
-
-handler.use(
-  cors({
-    credentials: true
-  })
-)
-
-async function userExists(userId: string) { //check if userID ecists
-  const result = await docClient
-    .get({
-      TableName: todoTable,
-      Key: {
-        id: userId
-      }
-    })
-    .promise()
-
-  console.log('Get group: ', result)
-  return !!result.Item
-}
-
-async function getUsersTodoById(userId: string) { //if userID exits, this will be called and return todoItems for this user
-  const result = await docClient.query({
-    TableName: todoTable,
-    KeyConditionExpression: 'userId = :userId',
-    ExpressionAttributeValues: {
-      ':userId': userId
-    },
-    ScanIndexForward: false
-  }).promise()
-
-  return result.Items
-}

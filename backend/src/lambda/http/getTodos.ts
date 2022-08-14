@@ -1,8 +1,5 @@
 import 'source-map-support/register'
-
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import * as middy from 'middy'
-import { cors } from 'middy/middlewares'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { getTodosForUser as getTodosForUser } from '../../businessLogic/todos'

@@ -12,6 +12,7 @@ export const handler = middy(
     // TODO: Implement creating a new TODO item
 
     return undefined
+  }
 )
 
 handler.use(

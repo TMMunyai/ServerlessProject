@@ -10,7 +10,7 @@ export class S3Helper{
         private readonly  s3:AWS.S3 = new XAWS.S3({
             signatureVersion: 'v4',
             region: process.env.region,
-            params: {Bucket: process.env.IMAGES_BUCKET}
+            params: {Bucket: process.env.ATTACHMENT_S3_BUCKET}
           }),
           private readonly  signedUrlExpireSeconds = 60 * 5
     ){
@@ -20,12 +20,12 @@ export class S3Helper{
         
         try{
             await this.s3.headObject({
-            Bucket: process.env.IMAGES_BUCKET,
+            Bucket: process.env.ATTACHMENT_S3_BUCKET,
             Key: `${todoId}.png` 
         }).promise();
         
         return  this.s3.getSignedUrl('getObject', {
-            Bucket: process.env.IMAGES_BUCKET,
+            Bucket: process.env.ATTACHMENT_S3_BUCKET,
             Key: `${todoId}.png`,
             Expires: this.signedUrlExpireSeconds
             });
@@ -37,7 +37,7 @@ export class S3Helper{
 
     getPresignedUrl(todoId: string): string{
         return this.s3.getSignedUrl('putObject', {
-            Bucket: process.env.IMAGES_BUCKET,
+            Bucket: process.env.ATTACHMENT_S3_BUCKET,
             Key: `${todoId}.png`,
             Expires: this.signedUrlExpireSeconds
           }) as string ;

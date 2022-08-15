@@ -7,6 +7,7 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -50,7 +51,7 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:Query
           Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-            - Effect: Allow
+        - Effect: Allow
           Action:
             - s3:PutObject
             - s3:GetObject
@@ -101,7 +102,11 @@ functions:
       - http:
           method: patch
           path: todos/{todoId}
-
+          authorizer: Auth
+          cors: true
+          request:
+            schemas:
+              application/json: ${file(models/create-todo-model.json)}
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteTodo:
@@ -110,7 +115,8 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
-
+          authorizer: Auth
+          cors: true
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
@@ -119,7 +125,9 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
-
+          authorizer: Auth
+          cors: true
+          
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources -- Done -not verified

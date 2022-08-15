@@ -10,7 +10,7 @@ import { UpdateTodoRequest } from "../requests/UpdateTodoRequest";
 const XAWS = AWSXRay.captureAWS(AWS)
 const docClient = new DocumentClient()
 const uuid = require('uuid/v4')
-const todosTable = process.env.TODO_TABLE
+const todosTable = process.env.TODOS_TABLE
 const userIdIndex = process.env.USER_ID_INDEX
 
 export class TodosAccess{ async getUserTodos(userId: string): Promise<TodoItem[]>{

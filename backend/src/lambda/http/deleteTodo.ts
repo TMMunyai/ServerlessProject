@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-import {deleteTodo} from '../../businessLogic/ToDo'
+import {deleteToDo} from '../../businessLogic/ToDo'
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   //print the event received by the lamda func
@@ -16,7 +16,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   const todoId = event.pathParameters.todoId
 
-  const deletedData = await deleteTodo(todoId, jwtTokenAuth)
+  const deletedData = await deleteToDo(todoId, jwtTokenAuth)
 
   return {
     statusCode: 200,

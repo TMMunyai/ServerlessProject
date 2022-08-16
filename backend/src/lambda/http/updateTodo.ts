@@ -1,58 +1,32 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import { updateTodo } from '../../businessLogic/todos'
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import {updateToDo} from '../../businessLogic/ToDo';
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { TodosAccess } from '../../helpers/todosAccess'
-import { getUserId } from '../utils'
-import { createLogger } from '../../utils/logger'
 
-const logger = createLogger('todos')
-const todosAccess = new TodosAccess()
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  //print the event received by the lamda func
+  //check authorization status
+  //parse the event data received into newTodo variable of type UpdateTodoRequest interface
+  //call updateToDo function to push updates to the databse and return results upon completion
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
-  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-  const userId = '1234'
-  
-  const item = await todosAccess.getTodoById(todoId)
+  console.log('Processing Event ', event);
+  const authorization = event.headers.Authorization;
+  const splitAuth = authorization.split(' ');
+  const jwtTokenAUth = splitAuth[1];
 
-  if(item.Count == 0){
-      logger.error(`user ${userId} requesting to update a TODO that does not exist with ID ${todoId}`)
-      return {
-          statusCode:400 ,
-          headers: {
-            'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({
-              message:'Error! TODO does not exist'
-        })
-        }
-  } 
+  const todoId = event.pathParameters.todoId;
+  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
-  if(item.Items[0].userId !== userId){
-      logger.error(`user ${userId} requesting to update a todo item, ID ${todoId} , that belong to another user `)
-      return {
-          statusCode:400 ,
-          headers: {
-            'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({
-              message:'Error! TODO owened by another user'
-        })
-        }
-  }
+  const toDoItem = await updateToDo(updatedTodo, todoId, jwtTokenAUth);
 
-  logger.info(`User ${userId} updating group ${todoId} to be ${updatedTodo}`)
-  await new TodosAccess().updateTodo(updatedTodo,todoId)
   return {
-      statusCode:204 ,
+      statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-          message:'Update successful'
-    })
-    }
-
-}
+          'item': toDoItem
+      }),
+  }
+};

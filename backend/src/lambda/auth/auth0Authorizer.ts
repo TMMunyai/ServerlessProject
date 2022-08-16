@@ -15,9 +15,7 @@ const logger = createLogger('auth')
 const jwksUrl = 'https://dev-aulh388t.us.auth0.com/.well-known/jwks.json'
 let signingKeys: { kid: string; publicKey: string }[]
 
-export const handler = async (
-  event: CustomAuthorizerEvent
-): Promise<CustomAuthorizerResult> => {
+export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
   logger.info('Authorizing a user', event.authorizationToken)
   try {
     const jwtToken = await verifyToken(event.authorizationToken)

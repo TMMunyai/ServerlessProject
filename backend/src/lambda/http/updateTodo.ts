@@ -1,27 +1,32 @@
 import 'source-map-support/register'
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import * as middy from 'middy'
-import { cors, httpErrorHandler } from 'middy/middlewares'
-
-import { updateTodo } from '../../businessLogic/todos'
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import {updateToDo} from '../../businessLogic/ToDo'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { getUserId } from '../utils'
 
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const todoId = event.pathParameters.todoId
-    const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-    // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  //print the event received by the lamda func
+  //check authorization status
+  //parse the event data received into newTodo variable of type UpdateTodoRequest interface
+  //call updateToDo function to push updates to the databse and return results upon completion
 
+  console.log('Processing Event ', event);
+  const authorization = event.headers.Authorization;
+  const splitAuth = authorization.split(' ');
+  const jwtTokenAUth = splitAuth[1];
 
-    return undefined
-)
+  const todoId = event.pathParameters.todoId;
+  const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
-handler
-  .use(httpErrorHandler())
-  .use(
-    cors({
-      credentials: true
-    })
-  )
+  const toDoItem = await updateToDo(updatedTodo, todoId, jwtTokenAUth);
+
+  return {
+      statusCode: 200,
+      headers: {
+          'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+          'item': toDoItem
+      }),
+  }
+};
